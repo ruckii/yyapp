@@ -1,1 +1,1 @@
-# yyapp
+# Bingo server
