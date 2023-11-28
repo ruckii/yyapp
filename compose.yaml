@@ -57,7 +57,7 @@ services:
   bingo-prepare-db:
     image: bingo-prepare-db:1.0
     build:
-      context: ./bingo/
+      context: .
       dockerfile: ./bingo/bingo-prepare-db.Dockerfile
     networks:
       - backend
@@ -72,7 +72,7 @@ services:
   bingo-server:
     image: bingo-server:1.0
     build:
-      context: ./bingo/
+      context: .
       dockerfile: ./bingo/bingo-server.Dockerfile
     network_mode: host
     depends_on:
@@ -92,7 +92,7 @@ services:
   caddy:
     image: caddy:1.0
     build:
-      context: ./caddy/
+      context: .
       dockerfile: ./caddy/caddy.Dockerfile
     restart: unless-stopped
     network_mode: 'host'

@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /srv
 
-COPY --chmod=755 ./caddy .
-COPY ./Caddyfile .
+COPY --chmod=755 ./bin/caddy .
+COPY ./caddy/Caddyfile .
 
 CMD ["/srv/caddy","run","--config","Caddyfile"]

@@ -6,9 +6,9 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /opt/bingo
 
-COPY --chmod=755 bingo .
-COPY ./config-server.yaml ./config.yaml
-COPY --chmod=755 healthcheck.sh .
+COPY --chmod=755 ./bin/bingo .
+COPY ./bingo/config-server.yaml ./config.yaml
+COPY --chmod=755 ./bingo/healthcheck.sh .
 
 RUN mkdir -p /opt/bongo/logs/21b3c4259a/ && \
     touch /opt/bongo/logs/21b3c4259a/main.log && \

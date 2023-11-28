@@ -6,7 +6,7 @@
 
 :443 {
 	#respond "I am :443"
-	reverse_proxy node-01:4922 node-02:4922 {
+	reverse_proxy node-01.local:4922 node-02.local:4922 {
 		health_uri /ping
 		health_interval 1s
 		health_timeout 1s
@@ -24,7 +24,7 @@
 
 :80 {
 	#respond "I am :80"
-	reverse_proxy node-01:4922 node-02:4922 {
+	reverse_proxy node-01.local:4922 node-02.local:4922 {
 		health_uri /ping
 		health_interval 1s
 		health_timeout 1s
