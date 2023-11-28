@@ -76,7 +76,7 @@ configure-slave: upgrade timesync hostname-slave docker
 master: configure-master passwords build
 	docker compose up -d caddy-master
 
-slave: configure-slave build
+slave: configure-slave passwords-slave build
 	# TODO: passwords
 	docker compose up -d caddy-slave
 
@@ -87,6 +87,16 @@ passwords: tools
 	echo -n $(REPL) > ./postgres/db_repl_password.txt
 	yq --inplace '.postgres_cluster.password = "$(DB)"' ./bingo/config-server.yaml
 	yq --inplace '.postgres_cluster.password = "$(DB)"' ./bingo/config-prepare-db.yaml
+
+passwords-slave: tools
+	read -p 'Insert db_password from master node: ' MASTERDB
+	read -p 'Insert db_repl_password from master node: ' MASTERDBREPL
+	echo "db_password=$(MASTERDB)" > .passwords
+	echo "db_repl_password=$(MASTERDBREPL)" >> .passwords
+	#echo -n $(DB) > ./postgres/db_password.txt
+	#echo -n $(REPL) > ./postgres/db_repl_password.txt
+	#yq --inplace '.postgres_cluster.password = "$(DB)"' ./bingo/config-server.yaml
+	#yq --inplace '.postgres_cluster.password = "$(DB)"' ./bingo/config-prepare-db.yaml
 
 clean:
 	echo -n "xxx" > ./postgres/db_password.txt
