@@ -1,0 +1,12 @@
+student_email: cyr@yandex.ru
+postgres_cluster:
+  hosts:
+  - address: db-master
+    port: 5432
+  - address: db-slave
+    port: 5432
+  user: postgres
+  password: {{ db_password }}
+  db_name: postgres
+  ssl_mode: disable
+  use_closest_node: true

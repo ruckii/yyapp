@@ -1,0 +1,12 @@
+student_email: cyr@yandex.ru
+postgres_cluster:
+  hosts:
+  - address: localhost
+    port: 1109
+  - address: localhost
+    port: 1110
+  user: postgres
+  password: {{ db_password }}
+  db_name: postgres
+  ssl_mode: disable
+  use_closest_node: true

@@ -1,0 +1,114 @@
+version: "3.8"
+services:
+
+  db-master:
+    image: 'bitnami/postgresql:latest'
+    networks:
+      - backend
+    ports:
+      - '1109:5432'
+    volumes:
+      - 'db-master-data-volume:/bitnami/postgresql'
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD_FILE=/run/secrets/db_repl_password
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD_FILE=/run/secrets/db_password
+      - POSTGRESQL_DATABASE=postgres
+    secrets:
+      - db_password
+      - db_repl_password
+    deploy:
+      resources:
+        limits:
+          memory: 1500M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+
+  db-slave:
+    image: 'bitnami/postgresql:latest'
+    networks:
+      - backend
+    ports:
+      - '1110:5432'
+    depends_on:
+      - db-master
+    volumes:
+      - 'db-slave-data-volume:/bitnami/postgresql'
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD_FILE=/run/secrets/db_repl_password
+      - POSTGRESQL_MASTER_HOST=db-master
+      - POSTGRESQL_PASSWORD_FILE=/run/secrets/db_password
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+    secrets:
+      - db_password
+      - db_repl_password
+    deploy:
+      resources:
+        limits:
+          memory: 1500M
+
+  bingo-prepare-db:
+    image: bingo-prepare-db:1.0
+    build:
+      context: ./bingo/
+      dockerfile: ./bingo/bingo-prepare-db.Dockerfile
+    networks:
+      - backend
+    depends_on:
+      db-master:
+        condition: service_healthy
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  bingo-server:
+    image: bingo-server:1.0
+    build:
+      context: ./bingo/
+      dockerfile: ./bingo/bingo-server.Dockerfile
+    network_mode: host
+    depends_on:
+      db-master:
+        condition: service_healthy
+      bingo-prepare-db:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 100M
+      replicas: 1
+      restart_policy:
+        condition: always
+
+  caddy:
+    image: caddy:1.0
+    build:
+      context: ./caddy/
+      dockerfile: ./caddy/caddy.Dockerfile
+    restart: unless-stopped
+    network_mode: 'host'
+    depends_on:
+      bingo-server:
+        condition: service_healthy
+
+networks:
+  backend:
+
+volumes:
+  db-master-data-volume:
+  db-slave-data-volume:
+
+secrets:
+  db_password:
+    file: ./postgres/db_password.txt
+  db_repl_password:
+    file: ./postgres/db_repl_password.txt

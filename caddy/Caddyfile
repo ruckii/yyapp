@@ -1,0 +1,38 @@
+# Global Option Block
+{
+	auto_https disable_redirects
+	admin off
+}
+
+:443 {
+	#respond "I am :443"
+	reverse_proxy node-01:4922 node-02:4922 {
+		health_uri /ping
+		health_interval 1s
+		health_timeout 1s
+		#health_status 200
+		health_body pong
+	}
+	tls internal {
+		on_demand
+	}
+	log {
+		output file https.log
+	}
+	encode zstd gzip
+}
+
+:80 {
+	#respond "I am :80"
+	reverse_proxy node-01:4922 node-02:4922 {
+		health_uri /ping
+		health_interval 1s
+		health_timeout 1s
+		#health_status 200
+		health_body pong
+	}
+	log {
+		output file http.log
+	}
+	encode zstd gzip
+}
