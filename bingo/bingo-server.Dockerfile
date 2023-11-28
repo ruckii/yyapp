@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /opt/bingo
 
-COPY --chmod=755 ./bin/bingo .
+COPY --chmod=755 ./bingo/bingo .
 COPY ./bingo/config-server.yaml ./config.yaml
 COPY --chmod=755 ./bingo/healthcheck.sh .
 

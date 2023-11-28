@@ -6,7 +6,7 @@ postgres_cluster:
     - address: localhost
       port: 1110
   user: postgres
-  password: 'xxx'
+  password: xxx
   db_name: postgres
   ssl_mode: disable
   use_closest_node: true

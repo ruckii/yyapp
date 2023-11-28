@@ -1,8 +1,9 @@
+.NOTPARALLEL:
 UBUNTU = jammy
 ARCH = amd64
 
-DB = $(shell date --rfc-3339=ns | md5sum | cut -c -32)
-REPL = $(shell date --rfc-3339=ns | md5sum | cut -c -32)
+DB := $(shell date --rfc-3339=ns | md5sum | cut -c -32)
+REPL := $(shell date --rfc-3339=ns | md5sum | cut -c -32)
 
 .DEFAULT_GOAL := info
 # uname := $(shell uname -s)
@@ -10,28 +11,28 @@ REPL = $(shell date --rfc-3339=ns | md5sum | cut -c -32)
 info:
 	@echo "--> Bingo server <<The Hard Way>> <--"
 
-.update:
+update:
 	sudo apt update
 
-.upgrade: .update
+upgrade: update
 	sudo apt upgrade --assume-yes --quiet
 
-.hostname-master:
+hostname-master:
 	sudo hostnamectl hostname node-01
 
-.hostname-slave:
+hostname-slave:
 	sudo hostnamectl hostname node-02
 
-.dns-resolver: .update
+dns-resolver: update
 	sudo apt install --assume-yes --quiet avahi-daemon
 	sudo systemctl enable avahi-daemon
 	sudo systemctl start avahi-daemon
 	sudo systemctl status avahi-daemon
 
-test: .update
+test: update
 	sudo apt install --assume-yes --quiet wrk
 
-.docker: .upgrade
+docker: upgrade
 	#echo $(UBUNTU)$(ARCH)
 	#sudo apt-get purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras
 	#sudo rm /etc/apt/keyrings/docker.gpg
@@ -47,7 +48,7 @@ test: .update
 	sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 	sudo usermod -aG docker ${USER}
 
-.timesync:
+timesync:
 #	Откройте файл /etc/systemd/timesyncd.conf, для этого в терминале выполните команду:
 	cat /etc/systemd/timesyncd.conf
 #       Укажите адреса рекомендуемых серверов в секции [Time] в параметре FallbackNTP=, например:
@@ -57,39 +58,41 @@ test: .update
 	sudo systemctl status systemd-timesyncd
 	timedatectl
 
-.downloads:
-	curl --progress-bar --output ./bin/bingo --location https://storage.yandexcloud.net/final-homework/bingo
-	curl --progress-bar --output ./bin/caddy --location https://caddyserver.com/api/download?os=linux&arch=amd64
+downloads:
+	curl --progress-bar --output ./bingo/bingo --location https://storage.yandexcloud.net/final-homework/bingo
+	#curl --progress-bar --output ./caddy/caddy --location https://caddyserver.com/api/download?os=linux&arch=amd64
 	touch .downloads
 
-.tools:
+tools:
 	sudo curl --progress-bar --output /usr/bin/yq --location https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/bin/yq
 
-.build: .downloads
+build: downloads
 	docker compose build
 
-.configure-master: .upgrade .timesync .hostname-master .docker
+configure-master: upgrade timesync hostname-master docker
 
-.configure-slave: .upgrade .timesync .hostname-slave .docker
+configure-slave: upgrade timesync hostname-slave docker
 
-master: .configure-master .passwords .build
-	docker compose up bingo-server-master
+master: configure-master passwords build
+	docker compose up -d caddy-master
 
-slave: .configure-slave .build
+slave: configure-slave build
 	# TODO: passwords
-	docker compose up bingo-server-slave
+	docker compose up -d caddy-slave
 
-.passwords: .tools
-	sudo curl --output /usr/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/bin/yq
+passwords: tools
 	echo "db_password=$(DB)" > .passwords
 	echo "db_repl_password=$(REPL)" >> .passwords
-	echo $(DB) > ./postgres/db_password.txt
-	echo $(REPL) > ./postgres/db_repl_password.txt
-	yq -i '.postgres_cluster.password = "$(DB)"' ./bingo/config-server.yaml
-	yq -i '.postgres_cluster.password = "$(DB)"' ./bingo/config-prepare-db.yaml
+	echo -n $(DB) > ./postgres/db_password.txt
+	echo -n $(REPL) > ./postgres/db_repl_password.txt
+	yq --inplace '.postgres_cluster.password = "$(DB)"' ./bingo/config-server.yaml
+	yq --inplace '.postgres_cluster.password = "$(DB)"' ./bingo/config-prepare-db.yaml
 
 clean:
-	echo "xxx" > ./postgres/db_password.txt
-	echo "xxx" > ./postgres/db_repl_password.txt
+	echo -n "xxx" > ./postgres/db_password.txt
+	echo -n "xxx" > ./postgres/db_repl_password.txt
 	yq --inplace '.postgres_cluster.password = "xxx"' ./bingo/config-server.yaml
 	yq --inplace '.postgres_cluster.password = "xxx"' ./bingo/config-prepare-db.yaml
+	sudo rm /etc/apt/keyrings/docker.gpg
+	rm ./bingo/bingo
+	rm ./caddy/caddy

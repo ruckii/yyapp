@@ -35,17 +35,17 @@ services:
       - backend
     ports:
       - '1110:5432'
-    depends_on:
-      - db-master
+    #depends_on:
+    #  - db-master
     volumes:
       - 'db-slave-data-volume:/bitnami/postgresql'
     environment:
       - POSTGRESQL_REPLICATION_MODE=slave
       - POSTGRESQL_REPLICATION_USER=repl_user
       - POSTGRESQL_REPLICATION_PASSWORD_FILE=/run/secrets/db_repl_password
-      - POSTGRESQL_MASTER_HOST=db-master
+      - POSTGRESQL_MASTER_HOST=node-01.local
       - POSTGRESQL_PASSWORD_FILE=/run/secrets/db_password
-      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+      - POSTGRESQL_MASTER_PORT_NUMBER=1109
     secrets:
       - db_password
       - db_repl_password
@@ -69,7 +69,7 @@ services:
       restart_policy:
         condition: on-failure
 
-  bingo-server:
+  bingo-server-master:
     image: bingo-server:1.0
     build:
       context: .
@@ -89,7 +89,7 @@ services:
       restart_policy:
         condition: always
 
-  caddy:
+  caddy-master:
     image: caddy:1.0
     build:
       context: .
@@ -97,7 +97,38 @@ services:
     restart: unless-stopped
     network_mode: 'host'
     depends_on:
-      bingo-server:
+      bingo-server-master:
+        condition: service_healthy
+
+  bingo-server-slave:
+    image: bingo-server:1.0
+    build:
+      context: .
+      dockerfile: ./bingo/bingo-server.Dockerfile
+    network_mode: host
+    depends_on:
+      db-slave:
+        condition: service_healthy
+#     bingo-prepare-db:
+#       condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 100M
+      replicas: 1
+      restart_policy:
+        condition: always
+
+  caddy-slave:
+    image: caddy:1.0
+    build:
+      context: .
+      dockerfile: ./caddy/caddy.Dockerfile
+    restart: unless-stopped
+    network_mode: 'host'
+    depends_on:
+      bingo-server-slave:
         condition: service_healthy
 
 networks:
