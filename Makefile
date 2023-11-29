@@ -2,6 +2,8 @@
 UBUNTU = jammy
 ARCH = amd64
 
+ADDR := $(shell bash -c 'read -p "[INPUT] Insert IP address or FQDN of the endpoint: " ipaddr_or_fqdn; echo $$ipaddr_or_fqdn')
+
 DB := $(shell date --rfc-3339=ns | md5sum | cut -c -32)
 REPL := $(shell date --rfc-3339=ns | md5sum | cut -c -32)
 
@@ -31,6 +33,14 @@ dns-resolver: update
 
 test: update
 	sudo apt install --assume-yes --quiet wrk
+	wrk --script ./tests/operation.lua --connections 30 --threads 4 --duration 1m --latency --timeout 1s http://$(ADDR)
+	wrk --script ./tests/api-customer-id.lua --connections 30 --threads 4 --duration 1m --latency --timeout 1s http://$(ADDR)
+	wrk --script ./tests/api-customer.lua --connections 1 --threads 1 --duration 1m --latency --timeout 60s http://$(ADDR)
+	wrk --script ./tests/api-movie-id.lua --connections 30 --threads 4 --duration 1m --latency --timeout 1s http://$(ADDR)
+	wrk --script ./tests/api-movie.lua --connections 1 --threads 1 --duration 1m --latency --timeout 60s http://$(ADDR)
+	wrk --script ./tests/api-session-id.lua --connections 30 --threads 4 --duration 1m --latency --timeout 1s http://$(ADDR)
+	wrk --script ./tests/db_dummy.lua --connections 30 --threads 4 --duration 1m --latency --timeout 1s http://$(ADDR)
+	wrk --script ./tests/operation.lua --connections 30 --threads 4 --duration 1m --latency --timeout 1s http://$(ADDR)
 
 docker: upgrade
 	#echo $(UBUNTU)$(ARCH)
