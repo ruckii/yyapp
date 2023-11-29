@@ -1,7 +1,10 @@
 # Global Option Block
 {
 	auto_https disable_redirects
-	admin off
+	admin 0.0.0.0:2020
+	servers {
+		metrics
+	}
 }
 
 :443 {
@@ -36,3 +39,10 @@
 	}
 	encode zstd gzip
 }
+
+#http://10.10.10.14:2020 {
+#	#respond "I am caddy admin:2020"
+#	reverse_proxy http://localhost:2019/metrics {
+#	}
+#	encode zstd gzip
+#}
