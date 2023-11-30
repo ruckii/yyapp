@@ -103,6 +103,8 @@ services:
       dockerfile: ./caddy/caddy.Dockerfile
     restart: unless-stopped
     network_mode: 'host'
+    volumes:
+      - 'caddy-static-volume:/static'
     depends_on:
       bingo-server-master:
         condition: service_healthy
@@ -114,8 +116,8 @@ services:
       dockerfile: ./bingo/bingo-server.Dockerfile
     network_mode: host
     extra_hosts:
-      - "node-01.local:10.10.10.14"
-      - "node-02.local:10.10.10.33"
+      - 'node-01.local:10.10.10.14'
+      - 'node-02.local:10.10.10.33'
     depends_on:
       db-slave:
         condition: service_healthy
@@ -147,6 +149,7 @@ networks:
 volumes:
   db-master-data-volume:
   db-slave-data-volume:
+  caddy-static-volume:
 
 secrets:
   db_password:

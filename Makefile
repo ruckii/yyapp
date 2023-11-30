@@ -37,6 +37,13 @@ dns-resolver: update
 ban-google:
 	sudo ip route add blackhole 8.8.8.8
 
+cache-long-dummy:
+	#sudo echo "* * * * * root docker exec -it yyapp-caddy-master-1 curl http://localhost:4922/long_dummy --output /static/index.html" >> /etc/crontab
+	#sudo echo "* * * * * root sleep 30 && docker exec -it yyapp-caddy-master-1 curl http://localhost:4922/long_dummy --output /static/index.html" >> /etc/crontab
+	# cron doesn't support sub-minute schedules
+	sudo echo "* * * * * root curl http://localhost:4922/long_dummy --output /var/lib/docker/volumes/yyapp_caddy-static-volume/_data/index.html" >> /etc/crontab
+	sudo echo "* * * * * root sleep 30 && curl http://localhost:4922/long_dummy --output /var/lib/docker/volumes/yyapp_caddy-static-volume/_data/index.html" >> /etc/crontab
+
 test: update
 	sudo apt install --assume-yes --quiet wrk
 	wrk --script ./tests/operation.lua --connections 30 --threads 4 --duration 1m --latency --timeout 1s http://$(ADDR)
