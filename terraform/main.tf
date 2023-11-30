@@ -12,7 +12,7 @@ provider "yandex" {
 }
 
 resource "yandex_compute_instance" "node-01" {
-  name = "node-01"
+  name        = "node-01"
   description = "Bingo cluster node #1"
 
   resources {
@@ -40,7 +40,7 @@ resource "yandex_compute_instance" "node-01" {
 }
 
 resource "yandex_compute_instance" "node-02" {
-  name = "node-02"
+  name        = "node-02"
   description = "Bingo cluster node #2"
 
   resources {
@@ -68,13 +68,13 @@ resource "yandex_compute_instance" "node-02" {
 }
 
 resource "yandex_vpc_network" "vnet-01" {
-  name = "vnet-01"
+  name        = "vnet-01"
   description = "Virtual network #1"
 }
 
 resource "yandex_vpc_subnet" "subnet-01" {
-  name = "subnet-01"
-  description           = "Virtual network #1 - Subnet #1"
+  name           = "subnet-01"
+  description    = "Virtual network #1 - Subnet #1"
   zone           = "ru-central1-a"
   network_id     = yandex_vpc_network.vnet-01.id
   v4_cidr_blocks = ["10.10.10.0/24"]
