@@ -139,6 +139,8 @@ services:
       dockerfile: ./caddy/caddy.Dockerfile
     restart: unless-stopped
     network_mode: 'host'
+    volumes:
+      - 'caddy-static-volume:/static'
     depends_on:
       bingo-server-slave:
         condition: service_healthy

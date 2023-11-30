@@ -62,6 +62,7 @@
 
 :8080 {
 	header Cache-control "public"
+	header Content-type "application/json"
 	root * /static
 	file_server
 }
