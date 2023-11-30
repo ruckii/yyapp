@@ -2,7 +2,7 @@
 UBUNTU = jammy
 ARCH = amd64
 
-ADDR := $(shell bash -c 'read -p "[INPUT] Insert IP address or FQDN of the endpoint: " ipaddr_or_fqdn; echo $$ipaddr_or_fqdn')
+ADDR := $(shell bash -c 'read -p "[INPUT] Insert IP address or FQDN of the endpoint [or skip to default]: " ipaddr_or_fqdn; if [[ $$ipaddr_or_fqdn -eq "" ]]; then set -a; source .env; set +a;  echo $$URL; else echo $$ipaddr_or_fqdn; fi')
 
 DB := $(shell date --rfc-3339=ns | md5sum | cut -c -32)
 REPL := $(shell date --rfc-3339=ns | md5sum | cut -c -32)
@@ -14,7 +14,7 @@ MASTERDBREPL ?= $(shell bash -c 'read -p "[INPUT] Insert db_repl_password from m
 # uname := $(shell uname -s)
 
 info:
-	@echo "--> Bingo server <<The Hard Way>> <--"
+	@echo "--> Bingo service <<The Hard Way>> <--"
 
 update:
 	sudo apt update
@@ -44,8 +44,8 @@ cache-long-dummy:
 	sudo echo "* * * * * root curl http://localhost:4922/long_dummy --output /var/lib/docker/volumes/yyapp_caddy-static-volume/_data/index.html" >> /etc/crontab
 	sudo echo "* * * * * root sleep 30 && curl http://localhost:4922/long_dummy --output /var/lib/docker/volumes/yyapp_caddy-static-volume/_data/index.html" >> /etc/crontab
 
-test: update
-	sudo apt install --assume-yes --quiet wrk
+test:
+	wrk --script ./tests/long_dummy.lua --connections 30 --threads 4 --duration 1m --latency --timeout 1s http://$(ADDR)
 	wrk --script ./tests/operation.lua --connections 30 --threads 4 --duration 1m --latency --timeout 1s http://$(ADDR)
 	wrk --script ./tests/api-customer-id.lua --connections 30 --threads 4 --duration 1m --latency --timeout 1s http://$(ADDR)
 	wrk --script ./tests/api-customer.lua --connections 1 --threads 1 --duration 1m --latency --timeout 60s http://$(ADDR)
@@ -90,6 +90,10 @@ tools:
 	@echo -n "[START] Installing yq ... "
 	@sudo curl --silent --output /usr/bin/yq --location https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/bin/yq
 	@echo "[done]"
+	@echo -n "[START] Installing wrk ... "
+	@sudo apt-get install --assume-yes -qq wrk
+	@echo "[done]"
+
 build: downloads
 	docker compose build
 
