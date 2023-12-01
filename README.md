@@ -47,7 +47,6 @@ sudo chmod 0666 /opt/bongo/logs/21b3c4259a/main.log
 tail -f /opt/bongo/logs/21b3c4259a/main.log
 ```
 
-
 ## Поход в корень
 Смотрим открытые порты
 
@@ -312,20 +311,29 @@ CREATE INDEX movies_year_idx ON public.movies ("year" DESC,"name",id DESC);
 - Yandex Monitoring для VM (диски, CPU), NLB (пакеты)
 - Grafana+Prometheus для caddy (на домашнем ПК), чтобы следить за RPS, длительностью запросов и ошибками HTTP
 
+![2023-12-02 00 12 49 monitoring cloud yandex ru e91198affb25](https://github.com/ruckii/yyapp/assets/1169824/2dcd5e06-8949-46dd-8168-ac4dcedfc938)
+
+![2023-12-02 00 09 25 primary local f59b2a848502](https://github.com/ruckii/yyapp/assets/1169824/cad2c218-5ae0-4451-9cd7-9d7c64bb75f8)
+
+## Итоговые end-to-end тесты
+
+![2023-11-30 15 26 52 devops yactf ru 93a7e9d12492](https://github.com/ruckii/yyapp/assets/1169824/15bf7149-e420-48a4-9822-e2c2d196b4d3)
 
 # English version
 ## Deployment steps
 
 1. Clone repository
-
-  git clone https://github.com/ruckii/yyapp
+```
+git clone https://github.com/ruckii/yyapp
+```
 
 2. Install **make** utility
-
-  sudo apt update
-  sudo apt install make
-
+```
+sudo apt update
+sudo apt install make
+```
 3. Do other stuff using **make**
-
-  cd yyapp
-  make
+```
+cd yyapp
+make
+```
